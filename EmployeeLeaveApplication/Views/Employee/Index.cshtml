@@ -1,0 +1,144 @@
+@model EmployeeLeaveApplication.ViewModels.EmployeeListViewModel
+@{
+    ViewData["Title"] = "Employee Management";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-people"></i> Employee Management</h2>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-person-plus"></i> Add New Employee</a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Search</label>
+                <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control" placeholder="Search by name, code, email..." />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Department</label>
+                <select name="departmentId" class="form-select">
+                    <option value="">-- All Departments --</option>
+                    @foreach (var dept in Model.DepartmentList)
+                    {
+                        <option value="@dept.Value" selected="@(Model.DepartmentId?.ToString() == dept.Value)">@dept.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Status</label>
+                <select name="statusFilter" class="form-select">
+                    <option value="all" selected="@(Model.StatusFilter == "all")">All Statuses</option>
+                    <option value="active" selected="@(Model.StatusFilter == "active")">Active Only</option>
+                    <option value="inactive" selected="@(Model.StatusFilter == "inactive")">Inactive Only</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100 me-2"><i class="bi bi-search"></i> Filter</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Department</th>
+                        <th>Date of Joining</th>
+                        <th>Reporting Manager</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Employees.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">No employees found.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var emp in Model.Employees)
+                        {
+                            <tr>
+                                <td class="fw-bold">@emp.EmployeeCode</td>
+                                <td>@emp.EmployeeName</td>
+                                <td>@emp.Email</td>
+                                <td><span class="badge bg-secondary">@emp.DepartmentName</span></td>
+                                <td>@emp.DateOfJoining.ToString("yyyy-MM-dd")</td>
+                                <td>@(emp.ReportingManagerName ?? "—")</td>
+                                <td>
+                                    @if (emp.IsActive)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactive</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="Details" asp-route-id="@emp.Id" class="btn btn-outline-info" title="View Details">Details</a>
+                                        <a asp-action="Edit" asp-route-id="@emp.Id" class="btn btn-outline-primary" title="Edit">Edit</a>
+                                        <form asp-action="ToggleStatus" asp-route-id="@emp.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to change the status of this employee?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn @(emp.IsActive ? "btn-outline-warning" : "btn-outline-success")" title="@(emp.IsActive ? "Deactivate" : "Activate")">
+                                                @(emp.IsActive ? "Deactivate" : "Activate")
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @if (Model.TotalPages > 1)
+    {
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+            <span class="text-muted small">Showing page @Model.PageNumber of @Model.TotalPages (@Model.TotalItems total records)</span>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageNumber - 1)" asp-route-searchTerm="@Model.SearchTerm" asp-route-departmentId="@Model.DepartmentId" asp-route-statusFilter="@Model.StatusFilter">Previous</a>
+                    </li>
+                    @for (int p = 1; p <= Model.TotalPages; p++)
+                    {
+                        <li class="page-item @(p == Model.PageNumber ? "active" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-pageNumber="@p" asp-route-searchTerm="@Model.SearchTerm" asp-route-departmentId="@Model.DepartmentId" asp-route-statusFilter="@Model.StatusFilter">@p</a>
+                        </li>
+                    }
+                    <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageNumber + 1)" asp-route-searchTerm="@Model.SearchTerm" asp-route-departmentId="@Model.DepartmentId" asp-route-statusFilter="@Model.StatusFilter">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>

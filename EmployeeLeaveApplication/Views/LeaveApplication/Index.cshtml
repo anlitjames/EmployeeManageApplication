@@ -1,0 +1,149 @@
+@model EmployeeLeaveApplication.ViewModels.LeaveApplicationListViewModel
+@{
+    ViewData["Title"] = "Leave Applications";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-card-checklist"></i> Leave Applications</h2>
+    <a asp-action="Apply" class="btn btn-primary"><i class="bi bi-file-earmark-plus"></i> Apply for Leave</a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Employee</label>
+                <select name="employeeId" class="form-select">
+                    <option value="">-- All Employees --</option>
+                    @foreach (var emp in Model.EmployeeList)
+                    {
+                        <option value="@emp.Value" selected="@(Model.EmployeeId?.ToString() == emp.Value)">@emp.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Leave Type</label>
+                <select name="leaveTypeId" class="form-select">
+                    <option value="">-- All Types --</option>
+                    @foreach (var lt in Model.LeaveTypeList)
+                    {
+                        <option value="@lt.Value" selected="@(Model.LeaveTypeId?.ToString() == lt.Value)">@lt.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Status</label>
+                <select name="status" class="form-select">
+                    <option value="all" selected="@(string.IsNullOrEmpty(Model.StatusFilter) || Model.StatusFilter == "all")">All</option>
+                    <option value="Pending" selected="@(Model.StatusFilter == "Pending")">Pending</option>
+                    <option value="Approved" selected="@(Model.StatusFilter == "Approved")">Approved</option>
+                    <option value="Rejected" selected="@(Model.StatusFilter == "Rejected")">Rejected</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Year</label>
+                <input type="number" name="year" value="@Model.Year" class="form-control" placeholder="e.g. 2026" />
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100 me-2"><i class="bi bi-filter"></i> Filter</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Employee</th>
+                        <th>Leave Type</th>
+                        <th>From Date</th>
+                        <th>To Date</th>
+                        <th class="text-center">Days</th>
+                        <th>Reason</th>
+                        <th class="text-center">Status</th>
+                        <th>Applied On</th>
+                        <th>Decision Info</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Applications.Any())
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">No leave applications match the selected criteria.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var app in Model.Applications)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">@app.EmployeeName</div>
+                                    <small class="text-muted">@app.EmployeeCode</small>
+                                </td>
+                                <td><span class="badge bg-secondary">@app.LeaveTypeName</span></td>
+                                <td>@app.FromDate.ToString("yyyy-MM-dd")</td>
+                                <td>@app.ToDate.ToString("yyyy-MM-dd")</td>
+                                <td class="text-center fw-bold">@app.NumberOfDays.ToString("0.##")</td>
+                                <td class="text-truncate" style="max-width: 200px;" title="@app.Reason">@app.Reason</td>
+                                <td class="text-center">
+                                    @if (app.Status == "Approved")
+                                    {
+                                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Approved</span>
+                                    }
+                                    else if (app.Status == "Rejected")
+                                    {
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Rejected</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> Pending</span>
+                                    }
+                                </td>
+                                <td>@app.AppliedDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>
+                                    @if (app.Status == "Approved")
+                                    {
+                                        <small class="text-success">
+                                            By: @(app.ApproverName ?? "System")<br />
+                                            @app.ApprovedDate?.ToString("yyyy-MM-dd HH:mm")
+                                        </small>
+                                    }
+                                    else if (app.Status == "Rejected")
+                                    {
+                                        <small class="text-danger">
+                                            <strong>Remarks:</strong> @(app.RejectionRemarks ?? "None")
+                                        </small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">—</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,4 +1,4 @@
-﻿using EmployeeLeaveApplication.Models;
+using EmployeeLeaveApplication.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EmployeeLeaveApplication.Data
@@ -91,6 +91,19 @@ namespace EmployeeLeaveApplication.Data
                 .WithMany()
                 .HasForeignKey(x => x.EmployeeId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Decimal precision configuration
+            modelBuilder.Entity<LeaveType>()
+                .Property(x => x.AnnualAllocation)
+                .HasPrecision(5, 2);
+
+            modelBuilder.Entity<LeaveType>()
+                .Property(x => x.MaxCarryForwardDays)
+                .HasPrecision(5, 2);
+
+            modelBuilder.Entity<LeaveApplication>()
+                .Property(x => x.NumberOfDays)
+                .HasPrecision(5, 2);
         }
     }
 }

@@ -1,15 +1,185 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model EmployeeLeaveApplication.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0"><i class="bi bi-speedometer2"></i> Dashboard</h2>
+        <span class="text-muted">Welcome back, <strong>@User.Identity?.Name</strong>!</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="LeaveApplication" asp-action="Apply" class="btn btn-primary"><i class="bi bi-file-earmark-plus"></i> Apply Leave</a>
+        <a asp-controller="LeaveBalance" asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-wallet2"></i> View Balances</a>
+    </div>
 </div>
 
-<h3>Database Connection Test</h3>
+<!-- KPI Metric Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card shadow-sm border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">Total Employees</div>
+                        <div class="fs-2 fw-bold text-dark mt-1">@Model.TotalEmployees</div>
+                        <small class="text-success fw-semibold"><i class="bi bi-check-circle"></i> @Model.ActiveEmployees Active</small>
+                    </div>
+                    <div class="fs-1 text-primary opacity-50"><i class="bi bi-people-fill"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<p>
-    Departments found:
-    <strong>@ViewBag.DepartmentCount</strong>
-</p>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card shadow-sm border-start border-warning border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">Pending Approvals</div>
+                        <div class="fs-2 fw-bold text-warning mt-1">@Model.PendingApplications</div>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                        {
+                            <a asp-controller="LeaveApproval" asp-action="Index" class="small text-decoration-none fw-semibold">Review Pending &rarr;</a>
+                        }
+                        else
+                        {
+                            <small class="text-muted">Awaiting decision</small>
+                        }
+                    </div>
+                    <div class="fs-1 text-warning opacity-50"><i class="bi bi-hourglass-split"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="card shadow-sm border-start border-success border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">Approved Leaves</div>
+                        <div class="fs-2 fw-bold text-success mt-1">@Model.ApprovedApplications</div>
+                        <small class="text-muted">Total processed</small>
+                    </div>
+                    <div class="fs-1 text-success opacity-50"><i class="bi bi-check2-circle"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="card shadow-sm border-start border-info border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">On Leave Today</div>
+                        <div class="fs-2 fw-bold text-info mt-1">@Model.EmployeesOnLeaveTodayCount</div>
+                        <small class="text-muted">@DateTime.Today.ToString("MMM dd, yyyy")</small>
+                    </div>
+                    <div class="fs-1 text-info opacity-50"><i class="bi bi-person-x-fill"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Employees On Leave Today -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-light py-3">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-calendar-event"></i> Employees On Leave Today (@Model.EmployeesOnLeaveTodayCount)</h5>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.EmployeesCurrentlyOnLeave.Any())
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-emoji-smile fs-3 d-block mb-2 text-success"></i>
+                        No employees are currently on approved leave today.
+                    </div>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var emp in Model.EmployeesCurrentlyOnLeave)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                                <div>
+                                    <div class="fw-bold">@emp.EmployeeName</div>
+                                    <small class="text-muted">@emp.EmployeeCode &bull; @emp.DepartmentName</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-primary">@emp.LeaveTypeName</span>
+                                    <small class="d-block text-muted mt-1">Until @emp.ToDate.ToString("yyyy-MM-dd")</small>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Leave Applications -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-clock-history"></i> Recent Applications</h5>
+                <a asp-controller="LeaveApplication" asp-action="Index" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Employee</th>
+                                <th>Type</th>
+                                <th>Dates</th>
+                                <th class="text-center">Days</th>
+                                <th class="text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.RecentApplications.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No applications found.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var item in Model.RecentApplications)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-semibold">@item.EmployeeName</div>
+                                            <small class="text-muted">@item.EmployeeCode</small>
+                                        </td>
+                                        <td><span class="badge bg-secondary">@item.LeaveTypeName</span></td>
+                                        <td><small>@item.FromDate.ToString("yyyy-MM-dd") to @item.ToDate.ToString("yyyy-MM-dd")</small></td>
+                                        <td class="text-center fw-bold">@item.NumberOfDays.ToString("0.##")</td>
+                                        <td class="text-center">
+                                            @if (item.Status == "Approved")
+                                            {
+                                                <span class="badge bg-success">Approved</span>
+                                            }
+                                            else if (item.Status == "Rejected")
+                                            {
+                                                <span class="badge bg-danger">Rejected</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
