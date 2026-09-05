@@ -1,0 +1,108 @@
+@model EmployeeLeaveApplication.ViewModels.LeaveBalanceListViewModel
+@{
+    ViewData["Title"] = "Leave Balances";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-wallet2"></i> Employee Leave Balances</h2>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Employee</label>
+                <select name="employeeId" class="form-select">
+                    <option value="">-- All Employees --</option>
+                    @foreach (var emp in Model.EmployeeList)
+                    {
+                        <option value="@emp.Value" selected="@(Model.EmployeeId?.ToString() == emp.Value)">@emp.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Leave Type</label>
+                <select name="leaveTypeId" class="form-select">
+                    <option value="">-- All Types --</option>
+                    @foreach (var lt in Model.LeaveTypeList)
+                    {
+                        <option value="@lt.Value" selected="@(Model.LeaveTypeId?.ToString() == lt.Value)">@lt.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Year</label>
+                <select name="year" class="form-select">
+                    @foreach (var y in Model.YearList)
+                    {
+                        <option value="@y.Value" selected="@(Model.Year.ToString() == y.Value)">@y.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100 me-2"><i class="bi bi-filter"></i> Filter</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Employee</th>
+                        <th>Department</th>
+                        <th>Leave Type</th>
+                        <th class="text-center">Allocated</th>
+                        <th class="text-center">Used (Approved)</th>
+                        <th class="text-center">Available Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Balances.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">No balance records found.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var b in Model.Balances)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">@b.EmployeeName</div>
+                                    <small class="text-muted">@b.EmployeeCode</small>
+                                </td>
+                                <td><span class="badge bg-secondary">@b.DepartmentName</span></td>
+                                <td><span class="badge bg-primary">@b.LeaveTypeName</span></td>
+                                <td class="text-center">@b.Allocated.ToString("0.##") days</td>
+                                <td class="text-center text-danger fw-semibold">@b.Used.ToString("0.##") days</td>
+                                <td class="text-center">
+                                    @if (b.Available <= 0)
+                                    {
+                                        <span class="badge bg-danger fs-6">@b.Available.ToString("0.##") days</span>
+                                    }
+                                    else if (b.Available <= 3)
+                                    {
+                                        <span class="badge bg-warning text-dark fs-6">@b.Available.ToString("0.##") days</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success fs-6">@b.Available.ToString("0.##") days</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white text-muted small py-2">
+        <i class="bi bi-info-circle"></i> Balances are dynamically calculated: <code>Available = Annual Allocation - Approved Leave Days (Year @Model.Year)</code>. Pending and Rejected applications do not deplete balance.
+    </div>
+</div>

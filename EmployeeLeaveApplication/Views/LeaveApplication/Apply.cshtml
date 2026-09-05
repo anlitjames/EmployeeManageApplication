@@ -1,0 +1,153 @@
+@model EmployeeLeaveApplication.ViewModels.LeaveApplicationCreateViewModel
+@{
+    ViewData["Title"] = "Apply for Leave";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white py-3">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-file-earmark-plus"></i> Submit Leave Application</h4>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Apply" method="post" id="leaveApplicationForm">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="EmployeeId" class="form-label fw-semibold"></label>
+                            <select asp-for="EmployeeId" asp-items="Model.EmployeeList" class="form-select" id="employeeSelect">
+                                <option value="">-- Select Employee --</option>
+                            </select>
+                            <span asp-validation-for="EmployeeId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="LeaveTypeId" class="form-label fw-semibold"></label>
+                            <select asp-for="LeaveTypeId" asp-items="Model.LeaveTypeList" class="form-select" id="leaveTypeSelect">
+                                <option value="">-- Select Leave Type --</option>
+                            </select>
+                            <span asp-validation-for="LeaveTypeId" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Live Balance Card -->
+                        <div class="col-12" id="balanceCardContainer" style="display: none;">
+                            <div class="card border-info bg-light">
+                                <div class="card-body py-2 px-3">
+                                    <div class="row text-center">
+                                        <div class="col-4 border-end">
+                                            <small class="text-muted d-block">Allocated</small>
+                                            <strong class="text-primary fs-5" id="lblAllocated">0</strong> days
+                                        </div>
+                                        <div class="col-4 border-end">
+                                            <small class="text-muted d-block">Used</small>
+                                            <strong class="text-secondary fs-5" id="lblUsed">0</strong> days
+                                        </div>
+                                        <div class="col-4">
+                                            <small class="text-muted d-block">Available</small>
+                                            <strong class="text-success fs-5" id="lblAvailable">0</strong> days
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="FromDate" class="form-label fw-semibold"></label>
+                            <input asp-for="FromDate" type="date" class="form-control" id="fromDateInput" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                            <span asp-validation-for="FromDate" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ToDate" class="form-label fw-semibold"></label>
+                            <input asp-for="ToDate" type="date" class="form-control" id="toDateInput" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                            <span asp-validation-for="ToDate" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="NumberOfDays" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <input asp-for="NumberOfDays" class="form-control bg-light" id="numberOfDaysInput" readonly />
+                                <span class="input-group-text">Day(s)</span>
+                            </div>
+                            <span asp-validation-for="NumberOfDays" class="text-danger small"></span>
+                            <div class="form-text text-info">Calculated automatically. Minimum 1 day.</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Reason" class="form-label fw-semibold"></label>
+                            <textarea asp-for="Reason" class="form-control" rows="3" placeholder="Provide a detailed reason for leave..."></textarea>
+                            <span asp-validation-for="Reason" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-send"></i> Submit Application</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            function updateBalance() {
+                var empId = $('#employeeSelect').val();
+                var typeId = $('#leaveTypeSelect').val();
+
+                if (empId && typeId) {
+                    $.ajax({
+                        url: '@Url.Action("GetBalance", "LeaveApplication")',
+                        type: 'GET',
+                        data: { employeeId: empId, leaveTypeId: typeId },
+                        success: function (res) {
+                            $('#lblAllocated').text(res.allocated);
+                            $('#lblUsed').text(res.used);
+                            $('#lblAvailable').text(res.available);
+                            $('#balanceCardContainer').slideDown();
+                        },
+                        error: function () {
+                            $('#balanceCardContainer').hide();
+                        }
+                    });
+                } else {
+                    $('#balanceCardContainer').slideUp();
+                }
+            }
+
+            function updateDays() {
+                var fromVal = $('#fromDateInput').val();
+                var toVal = $('#toDateInput').val();
+
+                if (fromVal && toVal) {
+                    var from = new Date(fromVal);
+                    var to = new Date(toVal);
+
+                    if (from > to) {
+                        $('#numberOfDaysInput').val(0);
+                        return;
+                    }
+
+                    // Calculate inclusive calendar days
+                    var diffTime = Math.abs(to - from);
+                    var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                    $('#numberOfDaysInput').val(diffDays);
+                }
+            }
+
+            $('#employeeSelect, #leaveTypeSelect').on('change', updateBalance);
+            $('#fromDateInput, #toDateInput').on('change', updateDays);
+
+            // Initial trigger if values pre-populated
+            if ($('#employeeSelect').val() && $('#leaveTypeSelect').val()) {
+                updateBalance();
+            }
+            updateDays();
+        });
+    </script>
+}

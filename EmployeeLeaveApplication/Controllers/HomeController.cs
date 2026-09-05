@@ -1,29 +1,28 @@
-using EmployeeLeaveApplication.Data;
 using EmployeeLeaveApplication.Models;
+using EmployeeLeaveApplication.Services;
+using EmployeeLeaveApplication.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
 namespace EmployeeLeaveApplication.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDashboardService _dashboardService;
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
+        public HomeController(ILogger<HomeController> logger, IDashboardService dashboardService)
         {
             _logger = logger;
-            _context = context;
+            _dashboardService = dashboardService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var departments = _context.Departments.ToList();
-
-            ViewBag.DepartmentCount = departments.Count;
-
-           
-            return View();
+            var model = await _dashboardService.GetDashboardMetricsAsync();
+            return View(model);
         }
 
         public IActionResult Privacy()

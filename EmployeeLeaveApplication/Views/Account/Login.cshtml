@@ -1,0 +1,61 @@
+@model EmployeeLeaveApplication.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Log In";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white text-center py-3">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-shield-lock"></i> Leave Management Login</h4>
+            </div>
+            <div class="card-body p-4">
+                <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Username" class="form-label fw-semibold"></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input asp-for="Username" class="form-control" placeholder="Enter username" autofocus />
+                        </div>
+                        <span asp-validation-for="Username" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label fw-semibold"></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-key"></i></span>
+                            <input asp-for="Password" class="form-control" placeholder="Enter password" />
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label"></label>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Sign In</button>
+                    </div>
+                </form>
+
+                <div class="mt-4 p-3 bg-light rounded border text-muted small">
+                    <strong class="text-dark">Test Credentials:</strong>
+                    <ul class="mb-0 ps-3 mt-1">
+                        <li><strong>Admin:</strong> <code>admin</code> / <code>Admin@123</code></li>
+                        <li><strong>Manager 1:</strong> <code>manager.bose</code> / <code>Manager@123</code></li>
+                        <li><strong>Manager 2:</strong> <code>manager.rahul</code> / <code>Manager@123</code></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,83 @@
+@model EmployeeLeaveApplication.ViewModels.LeaveTypeCreateViewModel
+@{
+    ViewData["Title"] = "Add Leave Type";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white py-3">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-plus-circle"></i> Add New Leave Type</h4>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post" id="leaveTypeForm">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="LeaveTypeName" class="form-label fw-semibold"></label>
+                        <input asp-for="LeaveTypeName" class="form-control" placeholder="e.g. Annual Leave, Sick Leave" />
+                        <span asp-validation-for="LeaveTypeName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label fw-semibold"></label>
+                        <textarea asp-for="Description" class="form-control" rows="2" placeholder="Brief description of leave policy"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="AnnualAllocation" class="form-label fw-semibold"></label>
+                            <input asp-for="AnnualAllocation" type="number" step="0.5" class="form-control" />
+                            <span asp-validation-for="AnnualAllocation" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="MaxCarryForwardDays" class="form-label fw-semibold"></label>
+                            <input asp-for="MaxCarryForwardDays" type="number" step="0.5" class="form-control" id="maxCarryForwardInput" />
+                            <span asp-validation-for="MaxCarryForwardDays" class="text-danger small"></span>
+                            <div class="form-text">Must be 0 if carry forward is not allowed.</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-check form-switch">
+                        <input asp-for="CarryForwardAllowed" class="form-check-input" id="carryForwardToggle" />
+                        <label asp-for="CarryForwardAllowed" class="form-check-label fw-semibold"></label>
+                    </div>
+
+                    <div class="mb-3 form-check form-switch">
+                        <input asp-for="IsActive" class="form-check-input" />
+                        <label asp-for="IsActive" class="form-check-label fw-semibold"></label>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save"></i> Save Leave Type</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            function updateCarryForwardState() {
+                var isChecked = $('#carryForwardToggle').is(':checked');
+                var $maxDays = $('#maxCarryForwardInput');
+                if (!isChecked) {
+                    $maxDays.val(0);
+                    $maxDays.prop('readonly', true);
+                } else {
+                    $maxDays.prop('readonly', false);
+                }
+            }
+
+            $('#carryForwardToggle').on('change', updateCarryForwardState);
+            updateCarryForwardState();
+        });
+    </script>
+}
