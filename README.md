@@ -140,4 +140,4 @@ If you wish to re-create the database from scratch:
    ```
    http://localhost:5080
    ```
-6. Sign in with `admin` / `Admin@123` to test Admin features or `manager.bose` / `Manager@123` to test Manager features.
+6. Sign in with `admin` / `Admin@123` to test Admin features or `Bose Thomas` / `Manager@123` to test Manager features.
