@@ -23,8 +23,8 @@ The application is pre-seeded with Admin and Manager credentials:
 | Role | Username | Password | Linked Employee | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | **Admin** | `admin` | `Admin@123` | EMP003 - Anlit James | Full administrative access to manage Employees, Leave Types, Approvals, and Balances |
-| **Manager** | `manager.bose` | `Manager@123` | EMP002 - Bose Thomas | Approves/rejects leave applications for reporting subordinates (EMP001, EMP005, EMP006) |
-| **Manager** | `Rahul` | `Manager@123` | EMP004 - Rahul  | Approves/rejects leave applications for reporting subordinates |
+| **Manager** | `Bose Thomas` | `Manager@123` | EMP002 - Bose Thomas | Approves/rejects leave applications for reporting subordinates (EMP001, EMP005, EMP006) |
+| **Manager** | `Rahul Kumar` | `Manager@123` | EMP004 - Rahul  | Approves/rejects leave applications for reporting subordinates |
 
 > Passwords are cryptographically hashed using PBKDF2 with unique salts. No plaintext passwords are stored.
 
