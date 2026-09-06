@@ -2,6 +2,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EmployeeLeaveApplication.ViewModels
 {
+    public class TestUserCredentialDto
+    {
+        public string Role { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string TestPassword { get; set; } = string.Empty;
+    }
+
     public class LoginViewModel
     {
         [Required(ErrorMessage = "Username is required.")]
@@ -18,5 +25,7 @@ namespace EmployeeLeaveApplication.ViewModels
         public bool RememberMe { get; set; }
 
         public string? ReturnUrl { get; set; }
+
+        public List<TestUserCredentialDto> TestCredentials { get; set; } = new();
     }
 }

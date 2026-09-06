@@ -1,4 +1,5 @@
 using EmployeeLeaveApplication.Models;
+using EmployeeLeaveApplication.ViewModels;
 
 namespace EmployeeLeaveApplication.Services
 {
@@ -8,5 +9,6 @@ namespace EmployeeLeaveApplication.Services
         string HashPassword(User user, string password);
         bool VerifyPassword(User user, string password, string passwordHash);
         Task SeedDefaultUsersAsync();
+        Task<List<TestUserCredentialDto>> GetTestUserCredentialsAsync();
     }
 }
