@@ -1,5 +1,6 @@
 using EmployeeLeaveApplication.Data;
 using EmployeeLeaveApplication.Models;
+using EmployeeLeaveApplication.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -92,7 +93,7 @@ namespace EmployeeLeaveApplication.Services
 
             var mgrUser2 = new User
             {
-                Username = "manager.rahul",
+                Username = "Rahul",
                 Role = "Manager",
                 EmployeeId = empMgr2?.Id,
                 IsActive = true,
@@ -104,6 +105,24 @@ namespace EmployeeLeaveApplication.Services
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Successfully seeded default Admin and Manager users.");
+        }
+
+        public async Task<List<TestUserCredentialDto>> GetTestUserCredentialsAsync()
+        {
+            var users = await _context.Users
+                .AsNoTracking()
+                .Where(u => u.IsActive && (u.Role == "Admin" || u.Role == "Manager"))
+                .OrderBy(u => u.Role == "Admin" ? 0 : 1)
+                .ThenBy(u => u.Id)
+                .Select(u => new { u.Role, u.Username })
+                .ToListAsync();
+
+            return users.Select(u => new TestUserCredentialDto
+            {
+                Role = u.Role,
+                Username = u.Username,
+                TestPassword = u.Role == "Admin" ? "Admin@123" : "Manager@123"
+            }).ToList();
         }
     }
 }

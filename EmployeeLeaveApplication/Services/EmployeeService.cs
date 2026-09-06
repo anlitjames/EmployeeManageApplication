@@ -199,19 +199,52 @@ namespace EmployeeLeaveApplication.Services
                 return (false, $"Email '{model.Email}' is already registered.");
             }
 
-            employee.EmployeeCode = model.EmployeeCode.Trim().ToUpper();
-            employee.EmployeeName = model.EmployeeName.Trim();
-            employee.Email = model.Email.Trim().ToLower();
-            employee.DepartmentId = model.DepartmentId;
-            employee.DateOfJoining = model.DateOfJoining;
-            employee.ReportingManagerId = model.ReportingManagerId;
-            employee.IsActive = model.IsActive;
-            employee.ModifiedDate = DateTime.Now;
+            var trimmedName = model.EmployeeName.Trim();
 
-            await _context.SaveChangesAsync();
+            // Check if there is a linked User account for this Employee
+            var linkedUser = await _context.Users.FirstOrDefaultAsync(u => u.EmployeeId == model.Id);
+            if (linkedUser != null && !string.Equals(linkedUser.Username, trimmedName, StringComparison.OrdinalIgnoreCase))
+            {
+                // Validate that the new username is not already taken by another user
+                var usernameExists = await _context.Users.AnyAsync(u => u.Username.ToLower() == trimmedName.ToLower() && u.Id != linkedUser.Id);
+                if (usernameExists)
+                {
+                    return (false, $"Cannot update employee: A user account with the username '{trimmedName}' already exists.");
+                }
+            }
 
-            _logger.LogInformation("Employee {EmployeeCode} updated successfully.", employee.EmployeeCode);
-            return (true, null);
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                employee.EmployeeCode = model.EmployeeCode.Trim().ToUpper();
+                employee.EmployeeName = trimmedName;
+                employee.Email = model.Email.Trim().ToLower();
+                employee.DepartmentId = model.DepartmentId;
+                employee.DateOfJoining = model.DateOfJoining;
+                employee.ReportingManagerId = model.ReportingManagerId;
+                employee.IsActive = model.IsActive;
+                employee.ModifiedDate = DateTime.Now;
+
+                // Synchronize Username to match EmployeeName
+                if (linkedUser != null)
+                {
+                    linkedUser.Username = trimmedName;
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("Employee {EmployeeCode} updated successfully (Synchronized User: {HasUser}).", 
+                    employee.EmployeeCode, linkedUser != null);
+
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Failed to update employee {EmployeeCode} and synchronize user.", employee.EmployeeCode);
+                return (false, "An unexpected error occurred while saving employee changes.");
+            }
         }
 
         public async Task<(bool Success, string? ErrorMessage)> ToggleStatusAsync(int id)

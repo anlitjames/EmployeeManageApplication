@@ -21,7 +21,7 @@ namespace EmployeeLeaveApplication.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Login(string? returnUrl = null)
+        public async Task<IActionResult> Login(string? returnUrl = null)
         {
             if (User.Identity?.IsAuthenticated == true)
             {
@@ -29,7 +29,8 @@ namespace EmployeeLeaveApplication.Controllers
             }
 
             ViewData["ReturnUrl"] = returnUrl;
-            return View(new LoginViewModel { ReturnUrl = returnUrl });
+            var testCredentials = await _authService.GetTestUserCredentialsAsync();
+            return View(new LoginViewModel { ReturnUrl = returnUrl, TestCredentials = testCredentials });
         }
 
         [HttpPost]
@@ -41,6 +42,7 @@ namespace EmployeeLeaveApplication.Controllers
 
             if (!ModelState.IsValid)
             {
+                model.TestCredentials = await _authService.GetTestUserCredentialsAsync();
                 return View(model);
             }
 
@@ -48,6 +50,7 @@ namespace EmployeeLeaveApplication.Controllers
             if (user == null)
             {
                 ModelState.AddModelError(string.Empty, "Invalid username or password.");
+                model.TestCredentials = await _authService.GetTestUserCredentialsAsync();
                 return View(model);
             }
 

@@ -348,12 +348,12 @@ GO
 -- Users (1 Admin, 2 Managers with PBKDF2 hashed passwords)
 -- admin: Admin@123
 -- manager.bose: Manager@123
--- manager.rahul: Manager@123
+-- Rahul: Manager@123
 SET IDENTITY_INSERT dbo.Users ON;
 INSERT INTO dbo.Users (Id, Username, PasswordHash, Role, EmployeeId, IsActive, CreatedDate) VALUES
 (1, N'admin', N'AQAAAAIAAYagAAAAEI0jZgVvUu31bL/xM0R89d81dD3/eF5nN1g8v0s8h5aK2Z3p1q4w==', N'Admin', 3, 1, GETDATE()),
 (2, N'manager.bose', N'AQAAAAIAAYagAAAAEI0jZgVvUu31bL/xM0R89d81dD3/eF5nN1g8v0s8h5aK2Z3p1q4w==', N'Manager', 2, 1, GETDATE()),
-(3, N'manager.rahul', N'AQAAAAIAAYagAAAAEI0jZgVvUu31bL/xM0R89d81dD3/eF5nN1g8v0s8h5aK2Z3p1q4w==', N'Manager', 4, 1, GETDATE());
+(3, N'Rahul', N'AQAAAAIAAYagAAAAEI0jZgVvUu31bL/xM0R89d81dD3/eF5nN1g8v0s8h5aK2Z3p1q4w==', N'Manager', 4, 1, GETDATE());
 SET IDENTITY_INSERT dbo.Users OFF;
 GO
 
