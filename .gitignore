@@ -2,7 +2,9 @@
 bin/
 obj/
 node_modules/
-dist/
-.angular/
+# Ignore build/output dist folders, but keep Bootstrap static files
+dist/*
+!wwwroot/lib/bootstrap/dist/
+!wwwroot/lib/bootstrap/dist/**.angular/
 *.user
 *.suo
