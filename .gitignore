@@ -5,6 +5,7 @@ node_modules/
 # Ignore build/output dist folders, but keep Bootstrap static files
 dist/*
 !wwwroot/lib/bootstrap/dist/
-!wwwroot/lib/bootstrap/dist/**.angular/
+!wwwroot/lib/bootstrap/dist/**
+.angular/
 *.user
 *.suo
